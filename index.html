@@ -1,0 +1,813 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Kai — あなた専属のAI右腕</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@300;400;500;700;900&family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary: #6366F1;
+            --primary-light: #818CF8;
+            --primary-dark: #4F46E5;
+            --accent: #F59E0B;
+            --accent-green: #10B981;
+            --bg: #030712;
+            --bg-card: rgba(255,255,255,0.03);
+            --bg-card-hover: rgba(255,255,255,0.06);
+            --border: rgba(255,255,255,0.06);
+            --text: #F8FAFC;
+            --text-sub: #94A3B8;
+            --text-muted: #64748B;
+            --gradient-hero: linear-gradient(135deg, #6366F1, #8B5CF6, #A78BFA);
+            --gradient-cta: linear-gradient(135deg, #F59E0B, #F97316);
+        }
+        *, *::before, *::after { margin:0; padding:0; box-sizing:border-box; }
+        html { scroll-behavior: smooth; }
+        body {
+            font-family: 'Noto Sans JP', 'Inter', -apple-system, sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            line-height: 1.8;
+            overflow-x: hidden;
+            -webkit-font-smoothing: antialiased;
+        }
+
+        /* === GLOBAL === */
+        .container { max-width: 1100px; margin: 0 auto; padding: 0 24px; }
+        section { position: relative; padding: 120px 0; }
+        .section-label {
+            display: inline-flex; align-items: center; gap: 8px;
+            font-size: 13px; font-weight: 600; letter-spacing: 0.1em;
+            text-transform: uppercase; color: var(--primary-light);
+            margin-bottom: 16px;
+        }
+        .section-label::before {
+            content: ''; width: 24px; height: 1px; background: var(--primary-light);
+        }
+        .section-title {
+            font-size: clamp(28px, 5vw, 44px); font-weight: 900;
+            line-height: 1.3; margin-bottom: 20px;
+            background: linear-gradient(135deg, #fff 30%, var(--primary-light));
+            -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+        .section-subtitle {
+            font-size: 17px; color: var(--text-sub); max-width: 640px; line-height: 1.8;
+        }
+
+        /* === NOISE OVERLAY === */
+        body::after {
+            content: ''; position: fixed; inset: 0; z-index: 9999;
+            pointer-events: none; opacity: 0.02;
+            background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+        }
+
+        /* === GLOW === */
+        .glow-top {
+            position: absolute; top: -200px; left: 50%; transform: translateX(-50%);
+            width: 800px; height: 600px; border-radius: 50%;
+            background: radial-gradient(circle, rgba(99,102,241,0.15), transparent 70%);
+            pointer-events: none; z-index: 0;
+        }
+
+        /* === NAV === */
+        nav {
+            position: fixed; top: 0; left: 0; right: 0; z-index: 100;
+            padding: 16px 0;
+            background: rgba(3,7,18,0.8);
+            backdrop-filter: blur(20px);
+            border-bottom: 1px solid var(--border);
+        }
+        nav .container { display: flex; align-items: center; justify-content: space-between; }
+        .nav-logo { font-size: 20px; font-weight: 800; letter-spacing: -0.02em; }
+        .nav-logo span { color: var(--primary-light); }
+        .nav-cta {
+            display: inline-flex; align-items: center; gap: 8px;
+            padding: 10px 24px; border-radius: 100px; font-size: 14px; font-weight: 600;
+            background: var(--gradient-cta); color: #000; text-decoration: none;
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+        .nav-cta:hover { transform: translateY(-1px); box-shadow: 0 8px 30px rgba(245,158,11,0.3); }
+
+        /* === HERO === */
+        .hero { padding: 180px 0 140px; text-align: center; position: relative; }
+        .hero .glow-top { top: -300px; }
+        .hero-badge {
+            display: inline-flex; align-items: center; gap: 8px;
+            padding: 8px 20px; border-radius: 100px;
+            background: rgba(99,102,241,0.1); border: 1px solid rgba(99,102,241,0.2);
+            font-size: 13px; font-weight: 600; color: var(--primary-light);
+            margin-bottom: 32px;
+        }
+        .hero-badge .dot { width: 6px; height: 6px; border-radius: 50%; background: var(--accent-green); animation: pulse 2s infinite; }
+        @keyframes pulse { 0%,100% { opacity: 1; } 50% { opacity: 0.4; } }
+        .hero h1 {
+            font-size: clamp(36px, 7vw, 72px); font-weight: 900;
+            line-height: 1.15; letter-spacing: -0.03em; margin-bottom: 24px;
+        }
+        .hero h1 .gradient {
+            background: var(--gradient-hero);
+            -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
+        }
+        .hero p { font-size: 18px; color: var(--text-sub); max-width: 560px; margin: 0 auto 48px; }
+        .hero-actions { display: flex; gap: 16px; justify-content: center; flex-wrap: wrap; }
+        .btn-primary {
+            display: inline-flex; align-items: center; gap: 8px;
+            padding: 16px 36px; border-radius: 100px; font-size: 16px; font-weight: 700;
+            background: var(--gradient-cta); color: #000; text-decoration: none;
+            transition: all 0.3s; border: none; cursor: pointer;
+        }
+        .btn-primary:hover { transform: translateY(-2px); box-shadow: 0 12px 40px rgba(245,158,11,0.35); }
+        .btn-secondary {
+            display: inline-flex; align-items: center; gap: 8px;
+            padding: 16px 36px; border-radius: 100px; font-size: 16px; font-weight: 600;
+            background: rgba(255,255,255,0.05); color: var(--text); text-decoration: none;
+            border: 1px solid var(--border); transition: all 0.3s;
+        }
+        .btn-secondary:hover { background: rgba(255,255,255,0.1); border-color: rgba(255,255,255,0.15); }
+
+        /* === SOCIAL PROOF === */
+        .social-proof { padding: 60px 0; border-top: 1px solid var(--border); border-bottom: 1px solid var(--border); }
+        .proof-grid {
+            display: grid; grid-template-columns: repeat(4, 1fr); gap: 40px;
+            text-align: center;
+        }
+        .proof-item .number { font-size: 36px; font-weight: 900; color: var(--primary-light); }
+        .proof-item .label { font-size: 13px; color: var(--text-muted); margin-top: 4px; }
+
+        /* === PROBLEM === */
+        .problem-grid {
+            display: grid; grid-template-columns: repeat(2, 1fr); gap: 20px;
+            margin-top: 48px;
+        }
+        .problem-card {
+            padding: 32px; border-radius: 16px;
+            background: var(--bg-card); border: 1px solid var(--border);
+            transition: all 0.3s;
+        }
+        .problem-card:hover { background: var(--bg-card-hover); border-color: rgba(255,255,255,0.1); }
+        .problem-card .icon { font-size: 28px; margin-bottom: 16px; }
+        .problem-card h3 { font-size: 17px; font-weight: 700; margin-bottom: 8px; }
+        .problem-card p { font-size: 14px; color: var(--text-sub); }
+
+        /* === HOW IT WORKS === */
+        .steps { margin-top: 64px; }
+        .step {
+            display: grid; grid-template-columns: 60px 1fr; gap: 24px;
+            padding: 32px 0; border-bottom: 1px solid var(--border);
+        }
+        .step:last-child { border-bottom: none; }
+        .step-num {
+            width: 48px; height: 48px; border-radius: 12px;
+            background: rgba(99,102,241,0.1); border: 1px solid rgba(99,102,241,0.2);
+            display: flex; align-items: center; justify-content: center;
+            font-size: 18px; font-weight: 800; color: var(--primary-light);
+        }
+        .step h3 { font-size: 20px; font-weight: 700; margin-bottom: 8px; }
+        .step p { font-size: 15px; color: var(--text-sub); }
+
+        /* === CHAT DEMO === */
+        .chat-window {
+            max-width: 520px; margin: 64px auto 0;
+            border-radius: 20px; overflow: hidden;
+            background: #111827; border: 1px solid var(--border);
+            box-shadow: 0 40px 80px rgba(0,0,0,0.5);
+        }
+        .chat-header {
+            padding: 16px 20px; display: flex; align-items: center; gap: 12px;
+            background: rgba(255,255,255,0.03); border-bottom: 1px solid var(--border);
+        }
+        .chat-avatar {
+            width: 36px; height: 36px; border-radius: 50%;
+            background: var(--gradient-hero); display: flex; align-items: center; justify-content: center;
+            font-size: 16px;
+        }
+        .chat-header-info .name { font-size: 14px; font-weight: 700; }
+        .chat-header-info .status { font-size: 11px; color: var(--accent-green); }
+        .chat-body { padding: 20px; display: flex; flex-direction: column; gap: 16px; }
+        .msg {
+            max-width: 85%; padding: 12px 16px; border-radius: 16px;
+            font-size: 14px; line-height: 1.6;
+            animation: msgIn 0.4s ease-out both;
+        }
+        @keyframes msgIn { from { opacity:0; transform: translateY(8px); } to { opacity:1; transform: translateY(0); } }
+        .msg.user {
+            align-self: flex-end; background: var(--primary-dark); color: #fff;
+            border-bottom-right-radius: 4px;
+        }
+        .msg.ai {
+            align-self: flex-start; background: rgba(255,255,255,0.06);
+            border-bottom-left-radius: 4px;
+        }
+        .msg .time { font-size: 10px; color: var(--text-muted); margin-top: 4px; }
+        .typing { display: flex; gap: 4px; padding: 12px 16px; align-self: flex-start; }
+        .typing span {
+            width: 6px; height: 6px; border-radius: 50%; background: var(--text-muted);
+            animation: typing 1.4s infinite;
+        }
+        .typing span:nth-child(2) { animation-delay: 0.2s; }
+        .typing span:nth-child(3) { animation-delay: 0.4s; }
+        @keyframes typing { 0%,60%,100%{opacity:0.3;transform:translateY(0)} 30%{opacity:1;transform:translateY(-4px)} }
+
+        /* === SERVICES === */
+        .services-grid {
+            display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px;
+            margin-top: 48px;
+        }
+        .service-card {
+            padding: 28px; border-radius: 16px;
+            background: var(--bg-card); border: 1px solid var(--border);
+            transition: all 0.3s;
+        }
+        .service-card:hover { background: var(--bg-card-hover); transform: translateY(-2px); }
+        .service-card .icon { font-size: 24px; margin-bottom: 12px; }
+        .service-card h3 { font-size: 15px; font-weight: 700; margin-bottom: 6px; }
+        .service-card p { font-size: 13px; color: var(--text-sub); }
+
+        /* === DEMOS === */
+        .demo-grid {
+            display: grid; grid-template-columns: repeat(2, 1fr); gap: 16px;
+            margin-top: 48px;
+        }
+        .demo-card {
+            padding: 28px; border-radius: 16px;
+            background: var(--bg-card); border: 1px solid var(--border);
+            text-decoration: none; color: var(--text);
+            transition: all 0.3s; display: block;
+        }
+        .demo-card:hover { background: var(--bg-card-hover); transform: translateY(-2px); border-color: var(--primary); }
+        .demo-card .tag {
+            display: inline-block; font-size: 11px; font-weight: 600;
+            padding: 4px 10px; border-radius: 100px;
+            background: rgba(99,102,241,0.1); color: var(--primary-light);
+            margin-bottom: 12px;
+        }
+        .demo-card h3 { font-size: 16px; font-weight: 700; margin-bottom: 6px; }
+        .demo-card p { font-size: 13px; color: var(--text-sub); }
+        .demo-card .arrow { color: var(--primary-light); font-size: 13px; margin-top: 12px; font-weight: 600; }
+
+        /* === COMPARISON === */
+        .comparison {
+            margin-top: 48px; border-radius: 16px; overflow: hidden;
+            border: 1px solid var(--border);
+        }
+        .comparison table { width: 100%; border-collapse: collapse; }
+        .comparison th, .comparison td { padding: 16px 20px; text-align: left; font-size: 14px; }
+        .comparison thead { background: rgba(99,102,241,0.08); }
+        .comparison th { font-weight: 700; font-size: 13px; color: var(--text-sub); }
+        .comparison td { border-top: 1px solid var(--border); }
+        .comparison .highlight { color: var(--accent); font-weight: 700; }
+        .comparison .kai-col { background: rgba(99,102,241,0.04); }
+
+        /* === PRICING === */
+        .pricing-card {
+            max-width: 480px; margin: 48px auto 0;
+            padding: 48px; border-radius: 24px;
+            background: linear-gradient(135deg, rgba(99,102,241,0.08), rgba(139,92,246,0.04));
+            border: 1px solid rgba(99,102,241,0.2);
+            text-align: center; position: relative; overflow: hidden;
+        }
+        .pricing-card::before {
+            content: ''; position: absolute; top: 0; left: 0; right: 0; height: 2px;
+            background: var(--gradient-hero);
+        }
+        .pricing-badge {
+            display: inline-block; padding: 6px 16px; border-radius: 100px;
+            background: rgba(245,158,11,0.15); color: var(--accent);
+            font-size: 13px; font-weight: 700; margin-bottom: 24px;
+        }
+        .pricing-old { font-size: 18px; color: var(--text-muted); text-decoration: line-through; }
+        .pricing-amount { font-size: 56px; font-weight: 900; margin: 8px 0; letter-spacing: -0.03em; }
+        .pricing-amount span { font-size: 20px; font-weight: 500; color: var(--text-sub); }
+        .pricing-tax { font-size: 13px; color: var(--text-muted); margin-bottom: 32px; }
+        .pricing-features { list-style: none; text-align: left; margin-bottom: 32px; }
+        .pricing-features li {
+            padding: 10px 0; font-size: 14px; color: var(--text-sub);
+            border-bottom: 1px solid var(--border);
+            display: flex; align-items: center; gap: 10px;
+        }
+        .pricing-features li::before { content: '✓'; color: var(--accent-green); font-weight: 700; }
+
+        /* === FAQ === */
+        .faq-list { margin-top: 48px; max-width: 720px; }
+        .faq-item {
+            border-bottom: 1px solid var(--border); overflow: hidden;
+        }
+        .faq-q {
+            width: 100%; padding: 20px 0; background: none; border: none;
+            color: var(--text); font-size: 16px; font-weight: 600;
+            text-align: left; cursor: pointer; display: flex;
+            justify-content: space-between; align-items: center;
+            font-family: inherit;
+        }
+        .faq-q::after { content: '+'; font-size: 20px; color: var(--text-muted); transition: transform 0.3s; }
+        .faq-q.active::after { transform: rotate(45deg); }
+        .faq-a {
+            max-height: 0; overflow: hidden; transition: max-height 0.3s ease;
+            font-size: 14px; color: var(--text-sub); line-height: 1.8;
+        }
+        .faq-a-inner { padding: 0 0 20px; }
+
+        /* === FOUNDER === */
+        .founder-card {
+            display: grid; grid-template-columns: auto 1fr; gap: 32px;
+            align-items: center; margin-top: 48px;
+            padding: 40px; border-radius: 20px;
+            background: var(--bg-card); border: 1px solid var(--border);
+        }
+        .founder-img {
+            width: 120px; height: 120px; border-radius: 16px;
+            background: var(--gradient-hero); display: flex; align-items: center; justify-content: center;
+            font-size: 48px; overflow: hidden;
+        }
+        .founder-img img { width: 100%; height: 100%; object-fit: cover; }
+        .founder-name { font-size: 20px; font-weight: 800; margin-bottom: 4px; }
+        .founder-title { font-size: 13px; color: var(--text-muted); margin-bottom: 12px; }
+        .founder-bio { font-size: 14px; color: var(--text-sub); }
+
+        /* === CTA === */
+        .final-cta {
+            text-align: center; padding: 120px 0 80px;
+            position: relative;
+        }
+        .final-cta .glow-top { top: -100px; }
+        .final-cta h2 {
+            font-size: clamp(28px, 5vw, 44px); font-weight: 900; margin-bottom: 16px;
+            line-height: 1.3;
+        }
+        .final-cta p { font-size: 17px; color: var(--text-sub); margin-bottom: 40px; }
+        .cta-note { font-size: 13px; color: var(--text-muted); margin-top: 16px; }
+
+        /* === FOOTER === */
+        footer {
+            padding: 40px 0; border-top: 1px solid var(--border);
+            text-align: center; font-size: 13px; color: var(--text-muted);
+        }
+
+        /* === RESPONSIVE === */
+        @media (max-width: 768px) {
+            section { padding: 80px 0; }
+            .proof-grid { grid-template-columns: repeat(2, 1fr); gap: 24px; }
+            .problem-grid { grid-template-columns: 1fr; }
+            .services-grid { grid-template-columns: 1fr; }
+            .demo-grid { grid-template-columns: 1fr; }
+            .founder-card { grid-template-columns: 1fr; text-align: center; justify-items: center; }
+            .comparison { overflow-x: auto; }
+            .step { grid-template-columns: 1fr; gap: 12px; }
+            .hero-actions { flex-direction: column; align-items: center; }
+            .pricing-amount { font-size: 44px; }
+        }
+
+        /* === ANIMATION === */
+        .fade-up {
+            opacity: 0; transform: translateY(24px);
+            transition: opacity 0.6s ease, transform 0.6s ease;
+        }
+        .fade-up.visible { opacity: 1; transform: translateY(0); }
+    </style>
+</head>
+<body>
+
+<!-- NAV -->
+<nav>
+    <div class="container">
+        <div class="nav-logo"><span>⚡</span> Kai</div>
+        <a href="https://t.me/ken1130" class="nav-cta">無料相談 →</a>
+    </div>
+</nav>
+
+<!-- HERO -->
+<section class="hero">
+    <div class="glow-top"></div>
+    <div class="container">
+        <div class="hero-badge">
+            <span class="dot"></span>
+            24時間稼働中
+        </div>
+        <h1>
+            チャットするだけで<br>
+            <span class="gradient">AI右腕が動き出す</span>
+        </h1>
+        <p>リサーチ、資料作成、メール対応、業務自動化。<br>スマホからメッセージを送るだけで、すべて代行します。</p>
+        <div class="hero-actions">
+            <a href="https://t.me/ken1130" class="btn-primary">無料で相談する →</a>
+            <a href="#demo" class="btn-secondary">▶ 実績を見る</a>
+        </div>
+    </div>
+</section>
+
+<!-- SOCIAL PROOF -->
+<section class="social-proof">
+    <div class="container">
+        <div class="proof-grid">
+            <div class="proof-item">
+                <div class="number">24h</div>
+                <div class="label">対応時間</div>
+            </div>
+            <div class="proof-item">
+                <div class="number">30分</div>
+                <div class="label">平均納品時間</div>
+            </div>
+            <div class="proof-item">
+                <div class="number">無制限</div>
+                <div class="label">依頼回数</div>
+            </div>
+            <div class="proof-item">
+                <div class="number">0円</div>
+                <div class="label">初期費用</div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- PROBLEM -->
+<section id="problem">
+    <div class="container">
+        <span class="section-label">課題</span>
+        <h2 class="section-title fade-up">忙しい経営者ほど、<br>AIの恩恵を受けられていない</h2>
+        <div class="problem-grid">
+            <div class="problem-card fade-up">
+                <div class="icon">😓</div>
+                <h3>AIが話題だけど、何から始めれば？</h3>
+                <p>ChatGPTは知ってる。でも使いこなす時間も余裕もない。結局触らないまま。</p>
+            </div>
+            <div class="problem-card fade-up">
+                <div class="icon">⏰</div>
+                <h3>やりたいことが多すぎる</h3>
+                <p>リサーチ、資料、メール対応…本業に集中したいのに雑務に追われる毎日。</p>
+            </div>
+            <div class="problem-card fade-up">
+                <div class="icon">💸</div>
+                <h3>人を雇うほどじゃないけど手が足りない</h3>
+                <p>正社員は高すぎる。外注は都度コストがかかる。ちょうどいい選択肢がない。</p>
+            </div>
+            <div class="problem-card fade-up">
+                <div class="icon">🔧</div>
+                <h3>ITツールの設定・管理が面倒</h3>
+                <p>Notion、Google、会計ソフト…ツールだけ増えて使いこなせない。</p>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- SOLUTION -->
+<section>
+    <div class="container" style="text-align:center;">
+        <span class="section-label">解決策</span>
+        <h2 class="section-title fade-up" style="max-width:640px;margin-left:auto;margin-right:auto;">
+            自分でAIを学ぶ必要は、<br>ありません。
+        </h2>
+        <p class="section-subtitle fade-up" style="margin:0 auto;">
+            社長がやるべきは「経営判断」。<br>AIの操作は、プロに任せてください。
+        </p>
+    </div>
+</section>
+
+<!-- HOW IT WORKS -->
+<section>
+    <div class="container">
+        <span class="section-label">使い方</span>
+        <h2 class="section-title fade-up">驚くほど簡単。3ステップ。</h2>
+        <div class="steps">
+            <div class="step fade-up">
+                <div class="step-num">1</div>
+                <div>
+                    <h3>チャットで依頼</h3>
+                    <p>「来週のプレゼン資料作って」「競合調べて」— 普段の言葉で送るだけ。Telegram、LINE、どこからでも。</p>
+                </div>
+            </div>
+            <div class="step fade-up">
+                <div class="step-num">2</div>
+                <div>
+                    <h3>AIが即座に実行</h3>
+                    <p>最新AI（Claude / GPT）を駆使して、リサーチ・資料作成・データ分析を数十分で完了。</p>
+                </div>
+            </div>
+            <div class="step fade-up">
+                <div class="step-num">3</div>
+                <div>
+                    <h3>結果を受け取る</h3>
+                    <p>完成した資料やレポートがチャットに届きます。確認して、OKを出すだけ。</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Chat Demo -->
+        <div class="chat-window fade-up">
+            <div class="chat-header">
+                <div class="chat-avatar">⚡</div>
+                <div class="chat-header-info">
+                    <div class="name">Kai</div>
+                    <div class="status">● オンライン</div>
+                </div>
+            </div>
+            <div class="chat-body">
+                <div class="msg user">来週の銀行向け事業計画書、作ってくれない？うちの数字はNotionにあるやつ使って</div>
+                <div class="msg ai">
+                    了解です ⚡ Notionの数字ベースで作りますね。<br><br>
+                    構成：<br>
+                    1. 事業概要<br>
+                    2. 市場分析<br>
+                    3. 売上計画<br>
+                    4. 資金使途<br>
+                    5. 返済計画<br><br>
+                    30分で仕上げます。
+                </div>
+                <div class="msg user">頼んだ🙏</div>
+                <div class="msg ai">
+                    完成しました 👇<br>
+                    📄 事業計画書（PDF）<br>
+                    銀行向けのトーンで作ってあります。修正があればお気軽に。
+                    <div class="time">⚡ 依頼から28分で納品</div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- SERVICES -->
+<section>
+    <div class="container">
+        <span class="section-label">対応範囲</span>
+        <h2 class="section-title fade-up">「やりたいけどできてない」を<br>全部やります</h2>
+        <p class="section-subtitle fade-up">チャットで指示するだけ。あとは全部お任せください。</p>
+        <div class="services-grid">
+            <div class="service-card fade-up">
+                <div class="icon">🔍</div>
+                <h3>リサーチ・調査</h3>
+                <p>競合分析、市場調査、業界レポート。調べる作業はすべて代行。</p>
+            </div>
+            <div class="service-card fade-up">
+                <div class="icon">📊</div>
+                <h3>資料・企画書作成</h3>
+                <p>事業計画、提案書、プレゼン資料。銀行・投資家向けも対応。</p>
+            </div>
+            <div class="service-card fade-up">
+                <div class="icon">📧</div>
+                <h3>メール・コミュニケーション</h3>
+                <p>重要メール通知、返信ドラフト、見落としゼロ運用。</p>
+            </div>
+            <div class="service-card fade-up">
+                <div class="icon">✅</div>
+                <h3>タスク・スケジュール管理</h3>
+                <p>毎朝ブリーフィング配信。予定・タスク・メールを一元管理。</p>
+            </div>
+            <div class="service-card fade-up">
+                <div class="icon">🌐</div>
+                <h3>HP・LP・アプリ制作</h3>
+                <p>このLPもAIが作りました。企画から公開まで即日対応。</p>
+            </div>
+            <div class="service-card fade-up">
+                <div class="icon">⚖️</div>
+                <h3>法務・財務サポート</h3>
+                <p>契約書チェック、補助金リサーチ、キャッシュフロー分析。</p>
+            </div>
+            <div class="service-card fade-up">
+                <div class="icon">🤖</div>
+                <h3>業務自動化・IT化</h3>
+                <p>紙の業務をデジタル化。Bot、管理画面、連携システムも構築。</p>
+            </div>
+            <div class="service-card fade-up">
+                <div class="icon">📈</div>
+                <h3>経営戦略・数値分析</h3>
+                <p>売上予測、KPI設計、営業ファネル設計。データで経営判断を支援。</p>
+            </div>
+            <div class="service-card fade-up">
+                <div class="icon">🔗</div>
+                <h3>ツール連携</h3>
+                <p>Google / Notion / Slack / 会計ソフト。バラバラのツールをAIが統合。</p>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- DEMOS -->
+<section id="demo">
+    <div class="container">
+        <span class="section-label">実績</span>
+        <h2 class="section-title fade-up">実際に作ったもの</h2>
+        <p class="section-subtitle fade-up">すべてチャットの指示だけで制作。専門知識は不要です。</p>
+        <div class="demo-grid">
+            <a href="https://kenken1130.github.io/shift-manager/" target="_blank" class="demo-card fade-up">
+                <span class="tag">📱 アプリ</span>
+                <h3>シフト管理アプリ</h3>
+                <p>店舗向け。AIスケジューリング付き。依頼から即日完成。</p>
+                <div class="arrow">デモを見る →</div>
+            </a>
+            <a href="https://kenken1130.github.io/golfin-pitch-deck/" target="_blank" class="demo-card fade-up">
+                <span class="tag">📈 プレゼン</span>
+                <h3>投資家向けピッチデッキ</h3>
+                <p>PDFからインタラクティブHTML化。URL共有で即プレゼン。</p>
+                <div class="arrow">デモを見る →</div>
+            </a>
+            <a href="https://kenken1130.github.io/ai-seminar-slides/" target="_blank" class="demo-card fade-up">
+                <span class="tag">🎤 スライド</span>
+                <h3>AIセミナースライド</h3>
+                <p>インタラクティブHTML。操作性重視のプレゼン資料。</p>
+                <div class="arrow">デモを見る →</div>
+            </a>
+            <a href="#" class="demo-card fade-up" onclick="return false;">
+                <span class="tag">🌐 Web</span>
+                <h3>このLP（V3）</h3>
+                <p>このページ自体もKaiが作成。企画からデプロイまで30分。</p>
+                <div class="arrow">今見てるやつ ⚡</div>
+            </a>
+        </div>
+    </div>
+</section>
+
+<!-- COMPARISON -->
+<section>
+    <div class="container">
+        <span class="section-label">比較</span>
+        <h2 class="section-title fade-up">他の選択肢と比べてください</h2>
+        <div class="comparison fade-up">
+            <table>
+                <thead>
+                    <tr>
+                        <th></th>
+                        <th>正社員（事務）</th>
+                        <th>オンライン秘書</th>
+                        <th>フリーランス</th>
+                        <th class="kai-col">⚡ Kai</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>月額コスト</td>
+                        <td>25〜35万+社保</td>
+                        <td>10〜20万</td>
+                        <td>案件ごと数万〜</td>
+                        <td class="kai-col highlight">5万円</td>
+                    </tr>
+                    <tr>
+                        <td>対応時間</td>
+                        <td>9〜18時</td>
+                        <td>平日日中</td>
+                        <td>要相談</td>
+                        <td class="kai-col highlight">24時間</td>
+                    </tr>
+                    <tr>
+                        <td>レスポンス</td>
+                        <td>数時間</td>
+                        <td>数時間〜1日</td>
+                        <td>1〜数日</td>
+                        <td class="kai-col highlight">数分〜30分</td>
+                    </tr>
+                    <tr>
+                        <td>依頼回数</td>
+                        <td>業務時間内</td>
+                        <td>月◯時間まで</td>
+                        <td>案件ごと</td>
+                        <td class="kai-col highlight">無制限</td>
+                    </tr>
+                    <tr>
+                        <td>解約</td>
+                        <td>退職手続き</td>
+                        <td>契約期間あり</td>
+                        <td>案件終了まで</td>
+                        <td class="kai-col highlight">いつでもOK</td>
+                    </tr>
+                    <tr>
+                        <td>開発・制作</td>
+                        <td>×</td>
+                        <td>×</td>
+                        <td>専門分野のみ</td>
+                        <td class="kai-col highlight">対応可</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+</section>
+
+<!-- PRICING -->
+<section id="pricing">
+    <div class="container" style="text-align:center;">
+        <span class="section-label">料金</span>
+        <h2 class="section-title fade-up">新入社員の1/5以下で、<br>24時間働く右腕</h2>
+        <div class="pricing-card fade-up">
+            <div class="pricing-badge">🔥 先着20組 モニター価格</div>
+            <div class="pricing-old">¥100,000 / 月</div>
+            <div class="pricing-amount">¥50,000<span>/月</span></div>
+            <div class="pricing-tax">税込 ¥55,000（50% OFF）</div>
+            <ul class="pricing-features">
+                <li>チャットで依頼し放題（回数無制限）</li>
+                <li>24時間対応（深夜・休日OK）</li>
+                <li>専用グループで情報完全非公開</li>
+                <li>リサーチ・資料・開発すべて対応</li>
+                <li>毎朝ブリーフィング自動配信</li>
+                <li>1ヶ月単位・いつでも解約OK</li>
+                <li>NDA締結可能</li>
+            </ul>
+            <a href="https://t.me/ken1130" class="btn-primary" style="width:100%;justify-content:center;">無料で相談する →</a>
+            <div class="cta-note">初期費用なし・違約金なし</div>
+        </div>
+    </div>
+</section>
+
+<!-- FAQ -->
+<section>
+    <div class="container">
+        <span class="section-label">FAQ</span>
+        <h2 class="section-title fade-up">よくあるご質問</h2>
+        <div class="faq-list fade-up">
+            <div class="faq-item">
+                <button class="faq-q">ITやAIに詳しくなくても使えますか？</button>
+                <div class="faq-a"><div class="faq-a-inner">はい。チャットで日本語のメッセージを送るだけです。「資料作って」「調べて」と普段の言葉で指示してください。パソコンの操作は不要です。</div></div>
+            </div>
+            <div class="faq-item">
+                <button class="faq-q">具体的にどんなことを頼めますか？</button>
+                <div class="faq-a"><div class="faq-a-inner">リサーチ、資料作成、メール対応、競合調査、事業計画、HP制作、業務自動化、法務チェックなど。基本的に「デスクワーク全般」とお考えください。</div></div>
+            </div>
+            <div class="faq-item">
+                <button class="faq-q">会社の情報を預けて大丈夫ですか？</button>
+                <div class="faq-a"><div class="faq-a-inner">御社専用のグループで運用し、情報は他のお客様と一切共有しません。NDA（秘密保持契約）の締結も可能です。</div></div>
+            </div>
+            <div class="faq-item">
+                <button class="faq-q">AIだけで大丈夫？品質は？</button>
+                <div class="faq-a"><div class="faq-a-inner">最新AI（Claude / GPT-4）をベースに、17事業を立ち上げた起業家・小松が監修。AIの速度と人間の経営判断力のハイブリッドです。品質に満足いただけない場合は何度でも修正対応します。</div></div>
+            </div>
+            <div class="faq-item">
+                <button class="faq-q">対応時間は？</button>
+                <div class="faq-a"><div class="faq-a-inner">24時間対応です。AIが即座に反応し、複雑な案件も数十分〜数時間で完了します。毎朝8時には予定・タスク・重要メールのブリーフィングが自動で届きます。</div></div>
+            </div>
+            <div class="faq-item">
+                <button class="faq-q">解約はいつでもOK？</button>
+                <div class="faq-a"><div class="faq-a-inner">はい。1ヶ月単位の契約で、いつでも解約可能です。違約金も一切ありません。</div></div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- FOUNDER -->
+<section>
+    <div class="container">
+        <span class="section-label">運営者</span>
+        <h2 class="section-title fade-up">Kaiの中の人</h2>
+        <div class="founder-card fade-up">
+            <div class="founder-img">
+                <img src="https://kenken1130.github.io/kai-subscription-lp/ken-photo.jpg" alt="Ken Komatsu" onerror="this.parentElement.innerHTML='👨‍💼'">
+            </div>
+            <div>
+                <div class="founder-name">小松 賢（Ken Komatsu）</div>
+                <div class="founder-title">Wonderwall Inc. CEO / 連続起業家</div>
+                <div class="founder-bio">
+                    17の事業を立ち上げた経験から、経営者の「やりたいけどできてない」を誰よりも理解しています。最新AIを経営の武器に変える — それがKaiのミッションです。
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- FINAL CTA -->
+<section class="final-cta">
+    <div class="glow-top"></div>
+    <div class="container">
+        <h2 class="fade-up">まずは気軽に、<br>話しかけてみてください。</h2>
+        <p class="fade-up">1ヶ月単位の契約。いつでも解約OK、縛りなし。</p>
+        <a href="https://t.me/ken1130" class="btn-primary fade-up">無料で相談する →</a>
+        <div class="cta-note fade-up">モニター枠 残り: 20組</div>
+    </div>
+</section>
+
+<!-- FOOTER -->
+<footer>
+    <div class="container">
+        <p>© 2026 Wonderwall Inc. All rights reserved.</p>
+    </div>
+</footer>
+
+<script>
+// Intersection Observer for fade-up animations
+const observer = new IntersectionObserver((entries) => {
+    entries.forEach(entry => {
+        if (entry.isIntersecting) {
+            entry.target.classList.add('visible');
+        }
+    });
+}, { threshold: 0.1, rootMargin: '0px 0px -40px 0px' });
+
+document.querySelectorAll('.fade-up').forEach(el => observer.observe(el));
+
+// FAQ accordion
+document.querySelectorAll('.faq-q').forEach(btn => {
+    btn.addEventListener('click', () => {
+        const isActive = btn.classList.contains('active');
+        // Close all
+        document.querySelectorAll('.faq-q').forEach(b => {
+            b.classList.remove('active');
+            b.nextElementSibling.style.maxHeight = null;
+        });
+        // Open clicked
+        if (!isActive) {
+            btn.classList.add('active');
+            btn.nextElementSibling.style.maxHeight = btn.nextElementSibling.scrollHeight + 'px';
+        }
+    });
+});
+</script>
+</body>
+</html>
