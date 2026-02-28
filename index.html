@@ -375,7 +375,10 @@
 <nav>
     <div class="container">
         <div class="nav-logo"><span>⚡</span> Kai</div>
-        <a href="https://t.me/ken1130" class="nav-cta">無料相談 →</a>
+        <div style="display:flex;align-items:center;gap:12px;">
+            <button onclick="toggleLang()" id="lang-btn" style="padding:6px 14px;border-radius:100px;font-size:13px;font-weight:600;background:rgba(255,255,255,0.08);color:var(--text-sub);border:1px solid var(--border);cursor:pointer;font-family:inherit;transition:all 0.2s;">EN</button>
+            <a href="https://t.me/ken1130" class="nav-cta"><span data-ja>無料相談 →</span><span data-en style="display:none">Free Consultation →</span></a>
+        </div>
     </div>
 </nav>
 
@@ -944,18 +947,195 @@ document.querySelectorAll('.fade-up').forEach(el => observer.observe(el));
 document.querySelectorAll('.faq-q').forEach(btn => {
     btn.addEventListener('click', () => {
         const isActive = btn.classList.contains('active');
-        // Close all
         document.querySelectorAll('.faq-q').forEach(b => {
             b.classList.remove('active');
             b.nextElementSibling.style.maxHeight = null;
         });
-        // Open clicked
         if (!isActive) {
             btn.classList.add('active');
             btn.nextElementSibling.style.maxHeight = btn.nextElementSibling.scrollHeight + 'px';
         }
     });
 });
+
+// Language toggle
+const translations = {
+    // Hero
+    '24時間稼働中': '24/7 Online',
+    'チャットするだけで': 'Just chat and your',
+    'AI右腕が動き出す': 'AI right-hand starts working',
+    'リサーチ、資料作成、メール対応、業務自動化。': 'Research, document creation, email management, workflow automation.',
+    'スマホからメッセージを送るだけで、すべて代行します。': 'Just send a message from your phone — we handle everything.',
+    '無料で相談する →': 'Free Consultation →',
+    '▶ 実績を見る': '▶ See Results',
+    // Social proof
+    '対応時間': 'Response Time',
+    '平均納品時間': 'Avg. Delivery',
+    '依頼回数': 'Requests',
+    '初期費用': 'Setup Fee',
+    '無制限': 'Unlimited',
+    // Problem
+    '課題': 'PROBLEM',
+    '忙しい経営者ほど、': 'The busier the executive,',
+    'AIの恩恵を受けられていない': 'the less they benefit from AI',
+    'AIが話題だけど、何から始めれば？': "AI is trending, but where to start?",
+    'ChatGPTは知ってる。でも使いこなす時間も余裕もない。結局触らないまま。': "You know ChatGPT exists, but no time to learn it. It stays untouched.",
+    'やりたいことが多すぎる': 'Too many things to do',
+    'リサーチ、資料、メール対応…本業に集中したいのに雑務に追われる毎日。': "Research, documents, emails... buried in busywork instead of focusing on your core business.",
+    '人を雇うほどじゃないけど手が足りない': "Not enough to hire, but not enough hands",
+    '正社員は高すぎる。外注は都度コストがかかる。ちょうどいい選択肢がない。': "Full-time is too expensive. Freelancers cost per project. No good middle ground.",
+    'ITツールの設定・管理が面倒': 'IT tools are a hassle',
+    'Notion、Google、会計ソフト…ツールだけ増えて使いこなせない。': "Notion, Google, accounting software... more tools, less productivity.",
+    // Solution
+    '解決策': 'SOLUTION',
+    '自分でAIを学ぶ必要は、': "You don't need to",
+    'ありません。': 'learn AI yourself.',
+    '社長がやるべきは「経営判断」。': 'Your job is making business decisions.',
+    'AIの操作は、プロに任せてください。': 'Leave the AI operations to the pros.',
+    // How it works
+    '使い方': 'HOW IT WORKS',
+    '驚くほど簡単。3ステップ。': 'Surprisingly simple. 3 steps.',
+    'チャットで依頼': 'Send a chat message',
+    '「来週のプレゼン資料作って」「競合調べて」— 普段の言葉で送るだけ。Telegram、LINE、どこからでも。': '"Make a presentation for next week" "Research competitors" — just type naturally. From Telegram, anywhere.',
+    'AIが即座に実行': 'AI executes instantly',
+    '最新AI（Claude / GPT）を駆使して、リサーチ・資料作成・データ分析を数十分で完了。': 'Using cutting-edge AI (Claude / GPT), research, documents, and data analysis are done in minutes.',
+    '結果を受け取る': 'Receive the results',
+    '完成した資料やレポートがチャットに届きます。確認して、OKを出すだけ。': 'Finished documents and reports are delivered via chat. Just review and approve.',
+    // Services
+    '対応範囲': 'SERVICES',
+    '「やりたいけどできてない」を': "Everything you've been",
+    '全部やります': 'wanting to do — done.',
+    'チャットで指示するだけ。あとは全部お任せください。': 'Just instruct via chat. We handle the rest.',
+    'リサーチ・調査': 'Research & Analysis',
+    '競合分析、市場調査、業界レポート。調べる作業はすべて代行。': 'Competitive analysis, market research, industry reports. All research handled.',
+    '資料・企画書作成': 'Document Creation',
+    '事業計画、提案書、プレゼン資料。銀行・投資家向けも対応。': 'Business plans, proposals, presentations. Bank & investor-ready.',
+    'メール・コミュニケーション': 'Email & Communication',
+    '重要メール通知、返信ドラフト、見落としゼロ運用。': 'Important email alerts, reply drafts, zero missed messages.',
+    'タスク・スケジュール管理': 'Task & Schedule Management',
+    '毎朝ブリーフィング配信。予定・タスク・メールを一元管理。': 'Daily morning briefings. Unified schedule, task, and email management.',
+    'HP・LP・アプリ制作': 'Website & App Development',
+    '法務・財務サポート': 'Legal & Financial Support',
+    '契約書チェック、補助金リサーチ、キャッシュフロー分析。': 'Contract review, subsidy research, cash flow analysis.',
+    '業務自動化・IT化': 'Workflow Automation',
+    '紙の業務をデジタル化。Bot、管理画面、連携システムも構築。': 'Digitize paper workflows. Build bots, dashboards, and integrations.',
+    '経営戦略・数値分析': 'Strategy & Analytics',
+    '売上予測、KPI設計、営業ファネル設計。データで経営判断を支援。': 'Revenue forecasting, KPI design, sales funnel planning. Data-driven decisions.',
+    'ツール連携': 'Tool Integration',
+    'Google / Notion / Slack / 会計ソフト。バラバラのツールをAIが統合。': 'Google / Notion / Slack / Accounting. AI unifies your scattered tools.',
+    // Industries
+    '業種別活用例': 'INDUSTRY USE CASES',
+    'あなたの業界でも、': 'Ready to use in',
+    'すぐに使えます': 'your industry too',
+    '業種に合わせた活用で、すぐに成果が出ます。': 'Industry-specific solutions that deliver immediate results.',
+    '飲食業': 'Restaurant & Food',
+    'レストラン・カフェ・居酒屋': 'Restaurants, Cafes, Bars',
+    'エステ・美容': 'Beauty & Spa',
+    'サロン・スパ・美容クリニック': 'Salons, Spas, Clinics',
+    '経営者・スタートアップ': 'Executives & Startups',
+    'CEO・創業者・個人事業主': 'CEOs, Founders, Entrepreneurs',
+    '不動産': 'Real Estate',
+    '仲介・管理・デベロッパー': 'Brokers, Management, Developers',
+    // Demos
+    '実績': 'PORTFOLIO',
+    '実際に作ったもの': 'Built by Kai',
+    'すべてチャットの指示だけで制作。専門知識は不要です。': 'All built from chat instructions alone. No technical skills needed.',
+    'デモを見る →': 'View Demo →',
+    'シフト管理アプリ': 'Shift Management App',
+    '投資家向けピッチデッキ': 'Investor Pitch Deck',
+    'AIセミナースライド': 'AI Seminar Slides',
+    // Comparison
+    '比較': 'COMPARISON',
+    '他の選択肢と比べてください': 'Compare your options',
+    '正社員（事務）': 'Full-time Employee',
+    'オンライン秘書': 'Virtual Assistant',
+    'フリーランス': 'Freelancer',
+    '月額コスト': 'Monthly Cost',
+    '対応時間': 'Hours',
+    'レスポンス': 'Response Time',
+    '解約': 'Cancellation',
+    '開発・制作': 'Development',
+    '退職手続き': 'Resignation process',
+    '契約期間あり': 'Contract period',
+    '案件終了まで': 'Until project ends',
+    'いつでもOK': 'Anytime',
+    '対応可': 'Available',
+    '専門分野のみ': 'Specialty only',
+    '要相談': 'Negotiable',
+    '数分〜30分': 'Minutes to 30min',
+    '数時間': 'Hours',
+    '数時間〜1日': 'Hours to 1 day',
+    '1〜数日': '1-several days',
+    '業務時間内': 'Business hours',
+    '月◯時間まで': 'Monthly cap',
+    '案件ごと': 'Per project',
+    '平日日中': 'Weekday daytime',
+    '9〜18時': '9-18',
+    // Pricing
+    '料金': 'PRICING',
+    '新入社員の半額以下で、': 'For less than half a new hire,',
+    '24時間働く右腕': 'a 24/7 right-hand man',
+    '🔥 先着20組 モニター価格': '🔥 First 20 clients — Early Bird',
+    'チャットで依頼し放題（回数無制限）': 'Unlimited chat requests',
+    '24時間対応（深夜・休日OK）': '24/7 support (nights & weekends)',
+    '専用グループで情報完全非公開': 'Private group — fully confidential',
+    'リサーチ・資料・開発すべて対応': 'Research, documents, development — all covered',
+    '毎朝プラン＋毎晩レポート自動配信': 'Morning plans + evening reports auto-delivered',
+    '1ヶ月単位・いつでも解約OK': 'Monthly — cancel anytime',
+    '初月返金保証付き（満足いかなければ全額返金）': 'First month money-back guarantee',
+    'NDA締結可能': 'NDA available',
+    '初期費用なし・違約金なし・初月返金保証付き': 'No setup fee · No penalties · Money-back guarantee',
+    // Differentiation
+    '最大の差別化': 'KEY DIFFERENTIATOR',
+    'AIは誰でも使える。': 'Anyone can use AI.',
+    'でも「使いこなせる人」は限られる。': 'But few can truly leverage it.',
+    '小松もグループにいます': 'Ken Komatsu is in your group',
+    'AIを使いこなせる経営者が、あなたの右腕になる。': 'An entrepreneur who masters AI becomes your right-hand man.',
+    // FAQ
+    'よくあるご質問': 'FAQ',
+    // Founder
+    '運営者': 'FOUNDER',
+    'Kaiの中の人': 'The person behind Kai',
+    '連続起業家': 'Serial Entrepreneur',
+    // CTA
+    'まずは気軽に、': "Feel free to",
+    '話しかけてみてください。': 'reach out.',
+    '1ヶ月単位の契約。いつでも解約OK。初月返金保証付き。': 'Monthly contract. Cancel anytime. First month money-back guarantee.',
+    'モニター枠 残り: 20組': 'Early bird spots remaining: 20',
+};
+
+let currentLang = 'ja';
+const originalTexts = new Map();
+
+function toggleLang() {
+    const btn = document.getElementById('lang-btn');
+    if (currentLang === 'ja') {
+        // Save originals and translate
+        const walker = document.createTreeWalker(document.body, NodeFilter.SHOW_TEXT, null, false);
+        while (walker.nextNode()) {
+            const node = walker.currentNode;
+            const trimmed = node.textContent.trim();
+            if (trimmed && translations[trimmed]) {
+                if (!originalTexts.has(node)) originalTexts.set(node, node.textContent);
+                node.textContent = node.textContent.replace(trimmed, translations[trimmed]);
+            }
+        }
+        // Toggle nav CTA
+        document.querySelectorAll('[data-ja]').forEach(el => el.style.display = 'none');
+        document.querySelectorAll('[data-en]').forEach(el => el.style.display = 'inline');
+        btn.textContent = 'JP';
+        currentLang = 'en';
+        document.documentElement.lang = 'en';
+    } else {
+        // Restore originals
+        originalTexts.forEach((orig, node) => { node.textContent = orig; });
+        document.querySelectorAll('[data-ja]').forEach(el => el.style.display = 'inline');
+        document.querySelectorAll('[data-en]').forEach(el => el.style.display = 'none');
+        btn.textContent = 'EN';
+        currentLang = 'ja';
+        document.documentElement.lang = 'ja';
+    }
+}
 </script>
 </body>
 </html>
